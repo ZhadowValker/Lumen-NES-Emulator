@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Lumen Gyro</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{--bg:#080c08;--panel:#0f160f;--panel2:#131d13;--line:#1e2c1e;--phos:#5cf24a;--phos-dim:#2f7a29;
     --amber:#ffb000;--fire:#ff2e4d;--ink:#cfe8cd;--muted:#6f866f;--mono:ui-monospace,Menlo,Consolas,monospace;}
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{margin:0}
-  body{background:var(--bg); color:var(--ink); font-family:var(--mono); line-height:1.4; padding:12px; min-height:100vh}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{margin:0; overscroll-behavior:none}
+  body{background:var(--bg); color:var(--ink); font-family:var(--mono); line-height:1.4; padding:12px; min-height:100vh;
+    touch-action:manipulation; overscroll-behavior:none}
   .wrap{max-width:560px; margin:0 auto}
   header{display:flex; align-items:baseline; gap:10px; margin-bottom:8px}
   h1{font-family:"Press Start 2P",var(--mono); font-size:15px; letter-spacing:1px; color:var(--phos);
@@ -176,23 +180,48 @@ if(location.protocol!=="https:" && location.hostname!=="localhost" && location.h
   document.getElementById("httpsWarn").classList.remove("hidden");
 }
 
+// ---- ROM persistence: a mobile reload should RESUME, not drop to the picker ----
+const DB="lumenROM", STORE="rom";
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,1);
+  r.onupgradeneeded=()=>r.result.createObjectStore(STORE);
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function saveRom(name,buf){ try{ const db=await idb(); await new Promise((res,rej)=>{
+  const tx=db.transaction(STORE,"readwrite"); tx.objectStore(STORE).put({name,buf},"current");
+  tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); }catch(_){} }
+async function getRom(){ try{ const db=await idb(); return await new Promise((res,rej)=>{
+  const tx=db.transaction(STORE,"readonly"); const g=tx.objectStore(STORE).get("current");
+  g.onsuccess=()=>res(g.result||null); g.onerror=()=>rej(g.error); }); }catch(_){ return null; } }
+
 const romInput=document.getElementById("rom"), startBtn=document.getElementById("startBtn");
-let romFile=null;
-romInput.addEventListener("change",e=>{ romFile=e.target.files[0]||null; startBtn.disabled=!romFile; });
-startBtn.addEventListener("click", async ()=>{
-  if(!romFile) return;
-  startBtn.disabled=true; startBtn.textContent="Booting…";
-  await enableGyro();                                  // must run in the tap (iOS)
+let romBuf=null, romName=null;
+romInput.addEventListener("change", async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  romName=f.name; romBuf=await f.arrayBuffer(); saveRom(romName,romBuf);
+  startBtn.disabled=false; startBtn.textContent="Enable Gyro & Start";
+});
+// on load, if a ROM was stored, offer one-tap resume (no re-pick needed)
+getRom().then(saved=>{ if(saved && saved.buf){ romBuf=saved.buf; romName=saved.name;
+  startBtn.disabled=false;
+  startBtn.textContent="▶ Resume "+(romName.length>18?romName.slice(0,16)+"…":romName); }});
+
+function boot(){
   document.getElementById("setup").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   window.EJS_player="#game"; window.EJS_core="nes";
-  window.EJS_gameName=romFile.name.replace(/\.[^.]+$/,"");
-  window.EJS_gameUrl=romFile;
+  window.EJS_gameName=(romName||"game").replace(/\.[^.]+$/,"");
+  window.EJS_gameID=window.EJS_gameName;               // keep battery saves per-game across reloads
+  window.EJS_gameUrl=new File([romBuf], romName||"game.nes");
   window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   window.EJS_startOnLoaded=true;
   window.EJS_ready=()=>{ requestAnimationFrame(loop); };
   const s=document.createElement("script"); s.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   document.body.appendChild(s);
+}
+startBtn.addEventListener("click", async ()=>{
+  if(!romBuf) return;
+  startBtn.disabled=true; startBtn.textContent="Booting…";
+  await enableGyro();                                  // must run in the tap (iOS)
+  boot();
 });
 </script>
 </body>
