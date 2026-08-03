@@ -2,327 +2,187 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumen</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lumen Gyro</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#080c08; --panel:#0f160f; --panel2:#131d13; --line:#1e2c1e;
-    --phos:#5cf24a; --phos-dim:#2f7a29; --amber:#ffb000; --fire:#ff2e4d;
-    --ink:#cfe8cd; --muted:#6f866f; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  }
-  *{box-sizing:border-box} html,body{margin:0}
-  body{background:radial-gradient(120% 90% at 50% -10%, #0d160d 0%, var(--bg) 60%),
-    repeating-linear-gradient(0deg, rgba(92,242,74,.03) 0 1px, transparent 1px 3px);
-    color:var(--ink); font-family:var(--mono); line-height:1.4; height:100vh; padding:14px 16px;}
-  .wrap{max-width:1500px; margin:0 auto; height:100%; display:flex; flex-direction:column}
-  header{display:flex; align-items:baseline; gap:14px; flex-shrink:0}
-  h1{font-family:"Press Start 2P",var(--mono); font-size:17px; letter-spacing:2px; color:var(--phos);
-    text-shadow:0 0 12px rgba(92,242,74,.5); margin:0}
-  .sub{color:var(--muted); font-size:12px}
-  .rule{height:1px; background:linear-gradient(90deg,var(--phos-dim),transparent); margin:10px 0 12px; flex-shrink:0}
-
+  :root{--bg:#080c08;--panel:#0f160f;--panel2:#131d13;--line:#1e2c1e;--phos:#5cf24a;--phos-dim:#2f7a29;
+    --amber:#ffb000;--fire:#ff2e4d;--ink:#cfe8cd;--muted:#6f866f;--mono:ui-monospace,Menlo,Consolas,monospace;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:var(--mono); line-height:1.4; padding:12px; min-height:100vh}
+  .wrap{max-width:560px; margin:0 auto}
+  header{display:flex; align-items:baseline; gap:10px; margin-bottom:8px}
+  h1{font-family:"Press Start 2P",var(--mono); font-size:15px; letter-spacing:1px; color:var(--phos);
+    text-shadow:0 0 10px rgba(92,242,74,.5); margin:0}
+  .sub{color:var(--muted); font-size:11px}
   .panel{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px}
-  .panel h2{font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--amber); margin:0 0 10px;
-    display:flex; align-items:center; gap:8px}
-  .panel h2 .spacer{flex:1}
-
-  /* main app: big top row + lower-third controls */
-  #app{flex:1; display:grid; grid-template-rows:1fr auto; gap:12px; min-height:0}
-  .top{display:grid; grid-template-columns:1fr 290px; gap:12px; min-height:0}
-
-  #stage{position:relative; background:#000; border:1px solid var(--line); border-radius:10px;
-    overflow:hidden; height:100%; display:flex; align-items:center; justify-content:center}
+  .panel h2{font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--amber); margin:0 0 10px}
+  #stage{position:relative; background:#000; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+    aspect-ratio:256/240; display:flex; align-items:center; justify-content:center; margin-bottom:10px}
   #game{width:100%; height:100%}
-
-  .side{display:flex; flex-direction:column; gap:12px; min-height:0}
-  #camBox{padding:10px}
-  .camhead{display:flex; align-items:center; font-size:10px; letter-spacing:2px; color:var(--amber);
-    text-transform:uppercase; margin-bottom:8px}
-  .camhead .spacer{flex:1}
-  #camWrap{position:relative; aspect-ratio:4/3; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#000}
-  #cam{width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block}
-  #hud{position:absolute; inset:0; width:100%; height:100%}
-
-  .info{flex:1 1 auto; display:flex; flex-direction:column; gap:10px}
-  .stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px}
-  .stat{background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px 8px; text-align:center}
-  .stat .k{font-size:9px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted)}
-  .stat .v{font-size:16px; margin-top:2px; color:var(--phos)}
-  .actLine{flex:1; display:flex; align-items:center; justify-content:center; font-size:20px; letter-spacing:3px;
-    color:var(--amber); background:var(--panel2); border:1px solid var(--line); border-radius:8px; min-height:44px}
-
-  /* lower third controls */
-  .controls{display:grid; grid-template-columns:1.3fr 0.85fr 1.05fr; gap:12px}
-  .toggle{display:flex; border:1px solid var(--line); border-radius:7px; overflow:hidden}
-  .toggle button{font-family:var(--mono); font-size:10px; color:var(--muted); background:var(--panel2);
-    border:0; padding:5px 9px; cursor:pointer}
-  .toggle button.on{background:var(--phos-dim); color:#eafce6}
-  .toprow{display:flex; gap:8px; margin-bottom:10px}
-  .toprow>*{flex:1}
+  .hud{display:flex; gap:8px; margin-bottom:10px}
+  .stat{flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:7px; padding:7px; text-align:center}
+  .stat .k{font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted)}
+  .stat .v{font-size:15px; margin-top:2px; color:var(--phos)}
+  .actLine{font-size:20px; letter-spacing:3px; color:var(--amber); text-align:center; padding:8px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:8px; margin-bottom:10px; min-height:40px}
   .row{display:flex; align-items:center; gap:10px; margin:8px 0}
-  .row label{flex:0 0 70px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .row label{flex:0 0 80px; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
   input[type=range]{flex:1; accent-color:var(--amber)}
-  button.cta{font-family:"Press Start 2P",var(--mono); font-size:11px; letter-spacing:.5px; color:#06120a;
-    background:var(--phos); border:0; border-radius:8px; padding:12px; cursor:pointer; width:100%;
-    box-shadow:0 0 18px rgba(92,242,74,.25); transition:filter .15s, transform .05s}
-  button.cta:hover{filter:brightness(1.08)} button.cta:active{transform:translateY(1px)}
-  button.cta:disabled{background:var(--line); color:var(--muted); box-shadow:none; cursor:not-allowed}
-  button.cta.ghost{background:transparent; color:var(--amber); border:1px solid var(--phos-dim); box-shadow:none}
-  .fireBtn{font-family:var(--mono); font-size:12px; color:var(--ink); background:var(--panel2);
+  .miscrow{display:flex; gap:8px; margin-top:6px}
+  .miscrow>button{flex:1}
+  .tog{font-family:var(--mono); font-size:12px; color:var(--ink); background:var(--panel2);
     border:1px solid var(--line); border-radius:8px; padding:11px; cursor:pointer}
-  .fireBtn.on{background:#2a0d13; border-color:var(--fire); color:var(--fire)}
-  .pad{display:grid; grid-template-columns:repeat(4,1fr); gap:7px}
-  .pad button{font-family:var(--mono); font-size:12px; color:var(--ink); background:var(--panel2);
-    border:1px solid var(--line); border-radius:7px; padding:12px 0; cursor:pointer}
-  .pad button:active{background:var(--phos-dim); color:#eafce6}
-  .legend{font-size:11px}
-  .legend div{display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed var(--line)}
-  .legend div:last-child{border:0}
-  .legend span:first-child{color:var(--amber)}
-  .legend span:last-child{color:var(--muted); text-align:right}
-
-  /* setup overlay */
-  #setup{position:fixed; inset:0; background:rgba(4,8,4,.9); display:flex; align-items:center; justify-content:center; z-index:50}
-  #setupCard{width:min(440px,92vw)}
-  #setupCard label{display:block; font-size:12px; color:var(--muted); margin:2px 0 6px}
-  input[type=file]{width:100%; font-family:var(--mono); font-size:12px; color:var(--ink);
-    background:var(--panel2); border:1px dashed var(--phos-dim); border-radius:8px; padding:12px; cursor:pointer}
+  .tog.on{background:#0d1a0d; border-color:var(--phos-dim); color:var(--phos)}
+  .tog.fire.on{background:#2a0d13; border-color:var(--fire); color:var(--fire)}
+  .buttons{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px}
+  .buttons button{font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--panel2);
+    border:1px solid var(--line); border-radius:9px; padding:16px 0; cursor:pointer; user-select:none}
+  .buttons button:active{background:var(--phos-dim); color:#eafce6}
+  .buttons .jump{grid-column:span 2; background:#0d1a0d; border-color:var(--phos-dim); color:var(--phos); font-weight:bold}
+  .cta{width:100%; font-family:"Press Start 2P",var(--mono); font-size:12px; color:#06120a; background:var(--phos);
+    border:0; border-radius:9px; padding:14px; margin-top:12px; cursor:pointer; box-shadow:0 0 18px rgba(92,242,74,.25)}
+  .cta:disabled{background:var(--line); color:var(--muted); box-shadow:none}
+  label.file{display:block; font-size:12px; color:var(--muted); margin:2px 0 6px}
+  input[type=file]{width:100%; font-family:var(--mono); font-size:12px; color:var(--ink); background:var(--panel2);
+    border:1px dashed var(--phos-dim); border-radius:8px; padding:12px}
   input[type=file]::file-selector-button{font-family:var(--mono); background:var(--phos-dim); color:#eafce6;
-    border:0; padding:8px 12px; border-radius:6px; margin-right:12px; cursor:pointer}
-  #setupCard .cta{margin-top:14px}
-  .note{font-size:11px; color:var(--muted); margin-top:14px; line-height:1.6}
+    border:0; padding:8px 12px; border-radius:6px; margin-right:12px}
+  .note{font-size:11px; color:var(--muted); margin-top:12px; line-height:1.6}
   .note code{color:var(--amber); background:#0a120a; padding:1px 5px; border-radius:4px}
+  .warn{color:var(--fire); font-size:11px; margin-top:8px}
   .hidden{display:none !important}
-
-  @media(max-width:920px){
-    body{height:auto} .wrap{height:auto}
-    .top{grid-template-columns:1fr} #stage{aspect-ratio:256/240; height:auto}
-    .controls{grid-template-columns:1fr}
-  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>LUMEN</h1>
-    <span class="sub">phone flashlight = your controller</span>
-  </header>
-  <div class="rule"></div>
+  <header><h1>LUMEN·GYRO</h1><span class="sub">tilt your phone = your controller</span></header>
 
-  <div id="app" class="hidden">
-    <div class="top">
-      <div id="stage"><div id="game"></div></div>
-      <aside class="side">
-        <div id="camBox" class="panel">
-          <div class="camhead">Camera<span class="spacer"></span>
-            <span class="toggle" id="viewToggle">
-              <button id="vCam" class="on">Cam</button><button id="vMask">Mask</button>
-            </span>
-          </div>
-          <div id="camWrap">
-            <video id="cam" playsinline autoplay muted></video>
-            <canvas id="hud" width="640" height="480"></canvas>
-          </div>
-        </div>
-        <div class="info panel">
-          <div class="stats">
-            <div class="stat"><div class="k">X</div><div class="v" id="sX">—</div></div>
-            <div class="stat"><div class="k">Y</div><div class="v" id="sY">—</div></div>
-            <div class="stat"><div class="k">Bright</div><div class="v" id="sB">0</div></div>
-          </div>
-          <div class="actLine" id="actLine">— no light —</div>
-        </div>
-      </aside>
-    </div>
-
-    <div class="controls">
-      <div class="panel">
-        <h2>Tuning</h2>
-        <div class="toprow">
-          <button class="cta ghost" id="centerBtn">◎ Set Center</button>
-          <button class="fireBtn on" id="fireBtn">◉ Auto-fire</button>
-        </div>
-        <div class="row"><label>Bright</label><input type="range" id="thr" min="120" max="255" step="1" value="210"></div>
-        <div class="row"><label>Deadzone</label><input type="range" id="dz" min="0.03" max="0.25" step="0.01" value="0.08"></div>
-        <div class="row"><label>Jump</label><input type="range" id="jmp" min="1.2" max="2.4" step="0.05" value="1.6"></div>
-      </div>
-      <div class="panel">
-        <h2>Buttons</h2>
-        <div class="pad">
-          <button data-btn="4">▲</button><button data-btn="6">◄</button>
-          <button data-btn="7">►</button><button data-btn="5">▼</button>
-          <button data-btn="8">A</button><button data-btn="0">B</button>
-          <button data-btn="3">START</button><button data-btn="2">SEL</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>Mapping</h2>
-        <div class="legend">
-          <div><span>Right / left</span><span>move · aim →←</span></div>
-          <div><span>Up / down</span><span>aim ↑↓ · crouch</span></div>
-          <div><span>Diagonals</span><span>full 8-way</span></div>
-          <div><span>Thrust in / Space</span><span>jump</span></div>
-          <div><span>Fire</span><span>auto (turbo)</span></div>
-        </div>
-      </div>
-    </div>
+  <div id="setup" class="panel">
+    <h2>Load game</h2>
+    <label class="file">Your legally-owned NES <code>.nes</code> ROM</label>
+    <input type="file" id="rom" accept=".nes,.zip,.fds,.unif">
+    <button class="cta" id="startBtn" disabled>Enable Gyro &amp; Start</button>
+    <div class="warn hidden" id="httpsWarn">⚠ Gyro needs HTTPS. Host on GitHub Pages or a tunnel — plain http:// won’t deliver tilt on a phone.</div>
+    <div class="note">Runs fully in your browser. After it starts: hold the phone comfortably and tap
+      <b>Set Neutral</b>. Tilt left/right to move, tilt up/down to aim, on-screen <b>JUMP/FIRE</b> for buttons.</div>
   </div>
 
-  <div id="setup">
-    <div id="setupCard" class="panel">
-      <h2>Load game</h2>
-      <label>Your legally-owned NES <code>.nes</code> ROM</label>
-      <input type="file" id="rom" accept=".nes,.zip,.fds,.unif">
-      <button class="cta" id="startBtn" disabled>Insert Cartridge</button>
-      <div class="note">Runs fully in your browser. Serve over <code>http://localhost</code> — the camera needs it.
-        After it boots: dim the room, point your phone flash at the camera, flip <b>Mask</b> and raise
-        <b>Bright</b> until only the flash glows, then <b>Set Center</b>. Jump = jab the light toward the
-        camera or tap <b>Space</b>.</div>
+  <div id="app" class="hidden">
+    <div id="stage"><div id="game"></div></div>
+
+    <div class="hud">
+      <div class="stat"><div class="k">Tilt X (γ)</div><div class="v" id="sG">0</div></div>
+      <div class="stat"><div class="k">Tilt Y (β)</div><div class="v" id="sB">0</div></div>
+    </div>
+    <div class="actLine" id="actLine">tap Set Neutral</div>
+
+    <div class="panel">
+      <h2>Controls</h2>
+      <div class="row"><label>Deadzone</label><input type="range" id="dz" min="3" max="25" step="1" value="9"></div>
+      <div class="miscrow">
+        <button class="tog on" id="neutralBtn">◎ Set Neutral</button>
+        <button class="tog" id="invBtn">↕ Invert Y</button>
+        <button class="tog fire on" id="fireBtn">◉ Auto-fire</button>
+      </div>
+      <div class="buttons">
+        <button class="jump" id="jumpBtn">JUMP (A)</button>
+        <button data-hold="0">B</button>
+        <button data-tap="3">START</button>
+        <button data-tap="2">SELECT</button>
+        <button data-hold="4">▲</button>
+        <button data-hold="5">▼</button>
+        <button data-hold="6">◄</button>
+        <button data-hold="7">►</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const BTN = { B:0, SELECT:2, START:3, UP:4, DOWN:5, LEFT:6, RIGHT:7, A:8 };
-const held = new Set();
+const BTN={B:0,SELECT:2,START:3,UP:4,DOWN:5,LEFT:6,RIGHT:7,A:8};
+const held=new Set();
 function emu(){ return window.EJS_emulator && window.EJS_emulator.gameManager ? window.EJS_emulator.gameManager : null; }
 function setButtons(desired){
-  const gm = emu(); if(!gm) return;
-  desired.forEach(i => gm.simulateInput(0,i,1));
-  held.forEach(i => { if(!desired.has(i)) gm.simulateInput(0,i,0); });
-  held.clear(); desired.forEach(i => held.add(i));
+  const gm=emu(); if(!gm) return;
+  desired.forEach(i=>gm.simulateInput(0,i,1));
+  held.forEach(i=>{ if(!desired.has(i)) gm.simulateInput(0,i,0); });
+  held.clear(); desired.forEach(i=>held.add(i));
 }
 function tap(i){ const gm=emu(); if(!gm) return; gm.simulateInput(0,i,1); setTimeout(()=>gm.simulateInput(0,i,0),80); }
 
-const video=document.getElementById("cam"), hud=document.getElementById("hud"), ctx=hud.getContext("2d");
-const MW=160, MH=120;
-const proc=document.createElement("canvas"); proc.width=MW; proc.height=MH;
-const pctx=proc.getContext("2d",{willReadFrequently:true});
-const maskCanvas=document.createElement("canvas"); maskCanvas.width=MW; maskCanvas.height=MH;
-const mctx=maskCanvas.getContext("2d");
-let maskImg=mctx.createImageData(MW,MH);
+// ---- gyro state ----
+let beta=0, gamma=0, beta0=null, gamma0=null;
+let autoFire=true, invertY=false;
+let extraHold=new Set();     // buttons held via on-screen dpad
+const sG=document.getElementById("sG"), sB=document.getElementById("sB"),
+      actLine=document.getElementById("actLine"), dzEl=document.getElementById("dz");
 
-const thrEl=document.getElementById("thr"), dzEl=document.getElementById("dz"), jmpEl=document.getElementById("jmp");
-const sX=document.getElementById("sX"), sY=document.getElementById("sY"), sB=document.getElementById("sB");
-const actLine=document.getElementById("actLine"), fireBtn=document.getElementById("fireBtn");
-
-let center={x:0.5,y:0.5};
-let autoFire=true, showMask=false;
-let lastJump=0, jumpFlash=0, emaN=null;
-let lastT=performance.now(), fps=0, lastSpot=null;
-
-fireBtn.addEventListener("click",()=>{ autoFire=!autoFire; fireBtn.classList.toggle("on",autoFire);
-  fireBtn.textContent = autoFire ? "◉ Auto-fire" : "○ Fire off"; });
-document.getElementById("centerBtn").addEventListener("click",()=>{
-  if(lastSpot){ center={x:lastSpot.x,y:lastSpot.y}; actLine.textContent="center set"; }
-  else actLine.textContent="no light to center on"; });
-document.getElementById("vCam").addEventListener("click",()=>{ showMask=false; vCam.classList.add("on"); vMask.classList.remove("on"); });
-document.getElementById("vMask").addEventListener("click",()=>{ showMask=true; vMask.classList.add("on"); vCam.classList.remove("on"); });
-
-function detectSpot(){
-  pctx.drawImage(video,0,0,MW,MH);
-  const d=pctx.getImageData(0,0,MW,MH).data;
-  const userThr=parseInt(thrEl.value,10);
-  let maxL=0;
-  for(let i=0;i<d.length;i+=4){ const l=Math.max(d[i],d[i+1],d[i+2]); if(l>maxL) maxL=l; }
-  sB.textContent=maxL;
-  const effThr=Math.max(userThr, maxL-30);
-  const m=maskImg.data;
-  let sx=0,sy=0,n=0;
-  for(let p=0,i=0;i<d.length;i+=4,p++){
-    const l=Math.max(d[i],d[i+1],d[i+2]);
-    const on = l>=effThr && maxL>=userThr;
-    m[i]=on?92:8; m[i+1]=on?242:12; m[i+2]=on?74:8; m[i+3]=255;
-    if(on){ sx+=p%MW; sy+=(p/MW)|0; n++; }
-  }
-  mctx.putImageData(maskImg,0,0);
-  if(n<2) return null;
-  return { x:1-(sx/n)/MW, y:(sy/n)/MH, n };
+function onOrient(e){
+  if(e.beta==null && e.gamma==null) return;
+  beta=e.beta||0; gamma=e.gamma||0;
+  if(beta0===null){ beta0=beta; gamma0=gamma; }   // auto-neutral on first reading
 }
+
+document.getElementById("neutralBtn").addEventListener("click",()=>{ beta0=beta; gamma0=gamma; actLine.textContent="neutral set"; });
+const invBtn=document.getElementById("invBtn");
+invBtn.addEventListener("click",()=>{ invertY=!invertY; invBtn.classList.toggle("on",invertY); });
+const fireBtn=document.getElementById("fireBtn");
+fireBtn.addEventListener("click",()=>{ autoFire=!autoFire; fireBtn.classList.toggle("on",autoFire);
+  fireBtn.textContent=autoFire?"◉ Auto-fire":"○ Fire off"; });
+document.getElementById("jumpBtn").addEventListener("click",()=>tap(BTN.A));
+
+// on-screen dpad/buttons
+document.querySelectorAll("[data-hold]").forEach(b=>{
+  const i=parseInt(b.dataset.hold,10);
+  const dn=e=>{e.preventDefault(); extraHold.add(i);}; const up=e=>{e.preventDefault(); extraHold.delete(i);};
+  b.addEventListener("touchstart",dn,{passive:false}); b.addEventListener("touchend",up);
+  b.addEventListener("mousedown",dn); b.addEventListener("mouseup",up); b.addEventListener("mouseleave",up);
+});
+document.querySelectorAll("[data-tap]").forEach(b=>{
+  const i=parseInt(b.dataset.tap,10);
+  b.addEventListener("click",()=>tap(i));
+});
 
 function loop(){
-  if(video.readyState>=2 && video.videoWidth>0){
-    const now=performance.now();
-    const spot=detectSpot();
-    if(spot){
-      if(emaN===null) emaN=spot.n;
-      if(spot.n > emaN*parseFloat(jmpEl.value) && now-lastJump>320){ tap(BTN.A); lastJump=now; jumpFlash=now; }
-      emaN = emaN*0.85 + spot.n*0.15;
-    } else { emaN=null; }
-    lastSpot=spot;
-    render(spot, now);
-    const dt=now-lastT; lastT=now; fps=fps*0.9+(1000/dt)*0.1;
-  }
-  requestAnimationFrame(loop);
-}
-
-function render(spot, now){
-  const W=hud.width,H=hud.height;
-  if(showMask){ ctx.save(); ctx.translate(W,0); ctx.scale(-1,1); ctx.imageSmoothingEnabled=false;
-    ctx.drawImage(maskCanvas,0,0,W,H); ctx.restore(); }
-  else ctx.clearRect(0,0,W,H);
-
+  const now=performance.now();
   const dz=parseFloat(dzEl.value);
-  ctx.strokeStyle="rgba(255,176,0,.85)"; ctx.lineWidth=1.5;
-  ctx.strokeRect((center.x-dz)*W,(center.y-dz)*H, dz*2*W, dz*2*H);
-  ctx.beginPath(); ctx.moveTo(center.x*W-8,center.y*H); ctx.lineTo(center.x*W+8,center.y*H);
-  ctx.moveTo(center.x*W,center.y*H-8); ctx.lineTo(center.x*W,center.y*H+8); ctx.stroke();
-
-  if(!spot){
-    setButtons(new Set());
-    sX.textContent="—"; sY.textContent="—"; actLine.textContent="— no light —";
-    if(!showMask){ ctx.fillStyle="rgba(111,134,111,.9)"; ctx.font="13px ui-monospace, monospace";
-      ctx.fillText("point flashlight at camera", 12, 22); }
-    return;
-  }
-
-  const ox=spot.x-center.x, oy=spot.y-center.y;
-  sX.textContent=ox.toFixed(2); sY.textContent=oy.toFixed(2);
+  const dg = (gamma0!==null) ? gamma-gamma0 : 0;
+  let   db = (beta0!==null) ? beta-beta0 : 0;
+  if(invertY) db=-db;
+  sG.textContent=Math.round(dg); sB.textContent=Math.round(db);
 
   const desired=new Set(); const acts=[];
-  if(ox>dz){ desired.add(BTN.RIGHT); acts.push("→"); }
-  else if(ox<-dz){ desired.add(BTN.LEFT); acts.push("←"); }
-  if(oy>dz){ desired.add(BTN.DOWN); acts.push("↓"); }
-  else if(oy<-dz){ desired.add(BTN.UP); acts.push("↑"); }
+  if(dg>dz){ desired.add(BTN.RIGHT); acts.push("→"); } else if(dg<-dz){ desired.add(BTN.LEFT); acts.push("←"); }
+  if(db>dz){ desired.add(BTN.DOWN); acts.push("↓"); } else if(db<-dz){ desired.add(BTN.UP); acts.push("↑"); }
+  extraHold.forEach(i=>desired.add(i));
   if(autoFire){ if(Math.floor(now/70)%2===0) desired.add(BTN.B); acts.push("FIRE"); }
   setButtons(desired);
-  if(now-jumpFlash<260) acts.push("JUMP");
-  actLine.textContent = acts.length ? acts.join("  ") : "· neutral ·";
-
-  const cx=spot.x*W, cy=spot.y*H;
-  ctx.strokeStyle="#ff2e4d"; ctx.lineWidth=2; ctx.shadowColor="#ff2e4d"; ctx.shadowBlur=14;
-  ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx-22,cy); ctx.lineTo(cx+22,cy);
-  ctx.moveTo(cx,cy-22); ctx.lineTo(cx,cy+22); ctx.stroke(); ctx.shadowBlur=0;
+  if(beta0!==null) actLine.textContent = acts.length ? acts.join("  ") : "· neutral ·";
+  requestAnimationFrame(loop);
 }
 
-window.startController = async function(){
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
-    video.srcObject=stream; await video.play();
-  }catch(err){ actLine.textContent="camera blocked: "+err.name; return; }
-  requestAnimationFrame(loop);
-};
+async function enableGyro(){
+  if(typeof DeviceOrientationEvent!=="undefined" && typeof DeviceOrientationEvent.requestPermission==="function"){
+    try{ const p=await DeviceOrientationEvent.requestPermission(); if(p!=="granted"){ actLine.textContent="gyro permission denied"; } }
+    catch(e){ actLine.textContent="gyro error: "+e.message; }
+  }
+  window.addEventListener("deviceorientation", onOrient, true);
+  window.addEventListener("deviceorientationabsolute", onOrient, true);  // android fallback
+}
 
-window.addEventListener("keydown", e=>{ if(e.code==="Space"){ e.preventDefault(); tap(BTN.A); jumpFlash=performance.now(); }});
-
-document.querySelectorAll(".pad button").forEach(b=>{
-  const i=parseInt(b.dataset.btn,10);
-  const down=e=>{e.preventDefault(); const gm=emu(); if(gm) gm.simulateInput(0,i,1);};
-  const up=e=>{e.preventDefault(); const gm=emu(); if(gm) gm.simulateInput(0,i,0);};
-  b.addEventListener("mousedown",down); b.addEventListener("mouseup",up);
-  b.addEventListener("touchstart",down,{passive:false}); b.addEventListener("touchend",up);
-});
+// https check
+if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1"){
+  document.getElementById("httpsWarn").classList.remove("hidden");
+}
 
 const romInput=document.getElementById("rom"), startBtn=document.getElementById("startBtn");
 let romFile=null;
-romInput.addEventListener("change", e=>{ romFile=e.target.files[0]||null; startBtn.disabled=!romFile; });
-startBtn.addEventListener("click", ()=>{
+romInput.addEventListener("change",e=>{ romFile=e.target.files[0]||null; startBtn.disabled=!romFile; });
+startBtn.addEventListener("click", async ()=>{
   if(!romFile) return;
   startBtn.disabled=true; startBtn.textContent="Booting…";
+  await enableGyro();                                  // must run in the tap (iOS)
   document.getElementById("setup").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
   window.EJS_player="#game"; window.EJS_core="nes";
@@ -330,7 +190,7 @@ startBtn.addEventListener("click", ()=>{
   window.EJS_gameUrl=romFile;
   window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   window.EJS_startOnLoaded=true;
-  window.EJS_ready=()=>{ window.startController(); };
+  window.EJS_ready=()=>{ requestAnimationFrame(loop); };
   const s=document.createElement("script"); s.src="https://cdn.emulatorjs.org/stable/data/loader.js";
   document.body.appendChild(s);
 });
