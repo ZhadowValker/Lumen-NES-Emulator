@@ -1,0 +1,90 @@
+name: CI/CD — Validate & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+
+  # ── JOB 1: HTML Validation ─────────────────────────────────────────────
+  validate:
+    name: HTML Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install html-validate
+        run: npm install -g html-validate
+
+      - name: Write html-validate config
+        run: |
+          cat > .htmlvalidate.json << 'JSON'
+          {
+            "extends": ["html-validate:recommended"],
+            "rules": {
+              "no-inline-style": "off",
+              "long-title": "off",
+              "require-sri": "off",
+              "script-type": "off"
+            }
+          }
+          JSON
+
+      - name: Run HTML validation
+        run: html-validate index.html
+
+      - name: Check file size (warn if > 100KB)
+        run: |
+          SIZE=$(wc -c < index.html)
+          echo "index.html size: ${SIZE} bytes"
+          if [ "$SIZE" -gt 102400 ]; then
+            echo "⚠️  Warning: index.html exceeds 100KB (${SIZE} bytes)"
+          else
+            echo "✅ File size OK"
+          fi
+
+  # ── JOB 2: Deploy to GitHub Pages ─────────────────────────────────────
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: validate           # only deploy if validation passes
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'           # serve repo root (index.html at root = homepage)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
