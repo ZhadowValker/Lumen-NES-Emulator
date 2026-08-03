@@ -62,7 +62,7 @@
     <h2>Load game</h2>
     <label class="file">Your legally-owned NES <code>.nes</code> ROM</label>
     <input type="file" id="rom" accept=".nes,.zip,.fds,.unif">
-    <button class="cta" id="startBtn" disabled>Enable Gyro &amp; Start</button>
+    <button type="button" class="cta" id="startBtn" disabled>Enable Gyro &amp; Start</button>
     <div class="warn hidden" id="httpsWarn">⚠ Gyro needs HTTPS. Host on GitHub Pages or a tunnel — plain http:// won’t deliver tilt on a phone.</div>
     <div class="note">Runs fully in your browser. After it starts: hold the phone comfortably and tap
       <b>Set Neutral</b>. Tilt left/right to move, tilt up/down to aim, on-screen <b>JUMP/FIRE</b> for buttons.</div>
@@ -81,19 +81,19 @@
       <h2>Controls</h2>
       <div class="row"><label>Deadzone</label><input type="range" id="dz" min="3" max="25" step="1" value="9"></div>
       <div class="miscrow">
-        <button class="tog on" id="neutralBtn">◎ Set Neutral</button>
-        <button class="tog" id="invBtn">↕ Invert Y</button>
-        <button class="tog fire on" id="fireBtn">◉ Auto-fire</button>
+        <button type="button" class="tog on" id="neutralBtn">◎ Set Neutral</button>
+        <button type="button" class="tog" id="invBtn">↕ Invert Y</button>
+        <button type="button" class="tog fire on" id="fireBtn">◉ Auto-fire</button>
       </div>
       <div class="buttons">
-        <button class="jump" id="jumpBtn">JUMP (A)</button>
-        <button data-hold="0">B</button>
-        <button data-tap="3">START</button>
-        <button data-tap="2">SELECT</button>
-        <button data-hold="4">▲</button>
-        <button data-hold="5">▼</button>
-        <button data-hold="6">◄</button>
-        <button data-hold="7">►</button>
+        <button type="button" class="jump" id="jumpBtn">JUMP (A)</button>
+        <button type="button" data-hold="0">B</button>
+        <button type="button" data-tap="3">START</button>
+        <button type="button" data-tap="2">SELECT</button>
+        <button type="button" data-hold="4">▲</button>
+        <button type="button" data-hold="5">▼</button>
+        <button type="button" data-hold="6">◄</button>
+        <button type="button" data-hold="7">►</button>
       </div>
     </div>
   </div>
